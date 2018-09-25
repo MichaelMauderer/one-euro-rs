@@ -1,0 +1,6 @@
+[package]
+name = "one-euro-rs"
+version = "0.1.0-pre"
+authors = ["Michael Mauderer <michael@michaelmauderer.com>"]
+
+[dependencies]
