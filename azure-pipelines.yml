@@ -1,0 +1,43 @@
+jobs:
+
+- job: 'Test'
+  strategy:
+    matrix:
+      Windows:
+        image: 'win1803'
+      macOS:
+        image: 'xcode9-macos10.13'
+      Linux:
+        image: 'ubuntu-16.04'
+    maxParallel: 6
+
+  steps:
+  - script: |
+      curl https://sh.rustup.rs -sSf | sh -s -- -y
+      set PATH=%PATH%;%USERPROFILE%\.cargo\bin
+      rustc --version
+      rustup install nightly
+      rustup install beta
+      rustup install stable
+    displayName: 'Install prerequisites'
+  - script: |
+      set PATH=%PATH%;%USERPROFILE%\.cargo\bin
+      cargo +nightly test
+    condition: succeededOrFailed()
+    displayName: 'Test nightly'
+  - script: |
+      set PATH=%PATH%;%USERPROFILE%\.cargo\bin
+      cargo +beta test
+    condition: succeededOrFailed()
+    displayName: 'Test beta'
+  - script: |
+      set PATH=%PATH%;%USERPROFILE%\.cargo\bin
+      cargo +stable test
+    condition: succeededOrFailed()
+    displayName: 'Test stable'
+  - script: |
+      set PATH=%PATH%;%USERPROFILE%\.cargo\bin
+      rustup component add clippy-preview --toolchain=nightly
+      cargo +nightly clippy
+    condition: succeededOrFailed()
+    displayName: 'Run clippy'
