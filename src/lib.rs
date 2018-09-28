@@ -1,3 +1,11 @@
+#![no_std]
+
+extern crate num_traits;
+
+use num_traits::float::FloatCore;
+use num_traits::float::FloatConst;
+
+
 /// Representation of a OneEuroFilter.
 ///
 /// # Examples
@@ -14,17 +22,17 @@
 /// one_euro.filter(1.04);
 /// one_euro.filter(0.00);
 /// ```
-pub struct OneEuroFilter {
-    pub configuration: OneEuroFilterConfiguration,
+pub struct OneEuroFilter<T: FloatCore> {
+    pub configuration: OneEuroFilterConfiguration<T>,
 
-    filter_dx: LowPassFilter,
-    filter_x: LowPassFilter,
-    frequency: f64,
-    time_last: Option<f64>,
+    filter_dx: LowPassFilter<T>,
+    filter_x: LowPassFilter<T>,
+    frequency: T,
+    time_last: Option<T>,
 }
 
-impl OneEuroFilter {
-    pub fn new(frequency: f64, cutoff_min: f64, cutoff_d: f64, beta: f64) -> OneEuroFilter {
+impl<T: FloatCore> OneEuroFilter<T> {
+    pub fn new(frequency: T, cutoff_min: T, cutoff_d: T, beta: T) -> OneEuroFilter<T> {
         OneEuroFilter {
             configuration: OneEuroFilterConfiguration {
                 frequency,
@@ -34,53 +42,53 @@ impl OneEuroFilter {
             },
             filter_dx: LowPassFilter::default(),
             filter_x: LowPassFilter::default(),
-            frequency: 0.0,
+            frequency: T::zero(),
             time_last: None,
         }
     }
 
-    pub fn from_configuration(configuration: OneEuroFilterConfiguration) -> OneEuroFilter {
+    pub fn from_configuration(configuration: OneEuroFilterConfiguration<T>) -> OneEuroFilter<T> {
         OneEuroFilter {
             configuration,
             filter_dx: LowPassFilter::default(),
             filter_x: LowPassFilter::default(),
-            frequency: 0.0,
+            frequency: T::zero(),
             time_last: None,
         }
     }
 }
 
 /// Configuration parameters of a One Euro Filter.
-pub struct OneEuroFilterConfiguration {
-    pub frequency: f64,
-    pub cutoff_min: f64,
-    pub cutoff_d: f64,
-    pub beta: f64,
+pub struct OneEuroFilterConfiguration<T> {
+    pub frequency: T,
+    pub cutoff_min: T,
+    pub cutoff_d: T,
+    pub beta: T,
 }
 
-struct LowPassFilter {
-    x_prev_hat: f64,
-    x_prev: f64,
+struct LowPassFilter<T> {
+    x_prev_hat: T,
+    x_prev: T,
     used_before: bool,
 }
 
-impl Default for LowPassFilter {
-    fn default() -> LowPassFilter {
+impl<T: FloatCore> Default for LowPassFilter<T> {
+    fn default() -> LowPassFilter<T> {
         LowPassFilter {
-            x_prev_hat: 0.0,
-            x_prev: 0.0,
+            x_prev_hat: T::zero(),
+            x_prev: T::zero(),
             used_before: false,
         }
     }
 }
 
-impl LowPassFilter {
-    fn filter(&mut self, x: f64, alpha: f64) -> f64 {
+impl<T: FloatCore> LowPassFilter<T> {
+    fn filter(&mut self, x: T, alpha: T) -> T {
         if !self.used_before {
             self.used_before = true;
             self.x_prev_hat = x;
         }
-        let x_hat = alpha * x + (1.0 - alpha) * self.x_prev_hat;
+        let x_hat = alpha * x + (T::one() - alpha) * self.x_prev_hat;
         self.x_prev = x;
         self.x_prev_hat = x_hat;
 
@@ -88,14 +96,14 @@ impl LowPassFilter {
     }
 }
 
-impl OneEuroFilter {
-    fn alpha(&self, cutoff: f64) -> f64 {
-        let te = 1.0 / self.frequency;
-        let tau = 1.0 / (2.0 * std::f64::consts::PI * cutoff);
-        1.0 / (1.0 + tau / te)
+impl<T: FloatCore + FloatConst> OneEuroFilter<T> {
+    fn alpha(&self, cutoff: T) -> T {
+        let te = T::one() / self.frequency;
+        let tau = T::one() / ((T::one() + T::one()) * T::PI() * cutoff);
+        T::one() / (T::one() + tau / te)
     }
 
-    pub fn filter(&mut self, x: f64) -> f64 {
+    pub fn filter(&mut self, x: T) -> T {
         if self.time_last.is_none() {
             self.frequency = self.configuration.frequency
         }
@@ -104,7 +112,7 @@ impl OneEuroFilter {
             if self.filter_x.used_before {
                 (x - self.filter_x.x_prev) * self.frequency
             } else {
-                0.0
+                T::zero()
             }
         };
 
@@ -116,9 +124,9 @@ impl OneEuroFilter {
         self.filter_x.filter(x, alpha_cutoff)
     }
 
-    pub fn filter_with_timestamp(&mut self, value: f64, timestamp: f64) -> f64 {
+    pub fn filter_with_timestamp(&mut self, value: T, timestamp: T) -> T {
         if let Some(time) = self.time_last {
-            self.frequency = 1.0 / (timestamp - time);
+            self.frequency = T::one() / (timestamp - time);
         }
         self.time_last = Some(timestamp);
         self.filter(value)
