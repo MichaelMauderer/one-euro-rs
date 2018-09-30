@@ -24,7 +24,7 @@ one_euro.filter(0.9);
 one_euro.filter(99999.9);
 one_euro.filter(1.01);
 one_euro.filter(1.04);
-one_euro.filtercargo(0.00);
+one_euro.filter(0.00);
 ```
 
 ## Versioning
