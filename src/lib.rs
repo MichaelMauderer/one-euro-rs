@@ -1,5 +1,4 @@
 #![no_std]
-
 extern crate num_traits;
 
 use num_traits::float::FloatCore;
@@ -22,6 +21,7 @@ use num_traits::float::FloatConst;
 /// one_euro.filter(1.04);
 /// one_euro.filter(0.00);
 /// ```
+#[derive(Debug, Clone)]
 pub struct OneEuroFilter<T: FloatCore> {
     pub configuration: OneEuroFilterConfiguration<T>,
 
@@ -59,6 +59,7 @@ impl<T: FloatCore> OneEuroFilter<T> {
 }
 
 /// Configuration parameters of a One Euro Filter.
+#[derive(Debug, Clone)]
 pub struct OneEuroFilterConfiguration<T> {
     pub frequency: T,
     pub cutoff_min: T,
@@ -66,6 +67,7 @@ pub struct OneEuroFilterConfiguration<T> {
     pub beta: T,
 }
 
+#[derive(Debug, Clone)]
 struct LowPassFilter<T> {
     x_prev_hat: T,
     x_prev: T,
