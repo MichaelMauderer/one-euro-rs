@@ -1,6 +1,6 @@
 [package]
 name = "one-euro-rs"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Michael Mauderer <michael@mauderer.me>"]
 description = "A rust implementation of the One Euro Fitler, a fast and simple signal filter, based on the work of Géry Casiez, Nicolas and Daniel Vogel."
 license = "MIT"
